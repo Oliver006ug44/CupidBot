@@ -25,21 +25,18 @@ def generate_profile_description(user_id:int):
 
 
 
-def find_compatible_profiles(user_id:int, members:list[Member]):
+def find_compatible_profiles(user_id: int, members: list[Member]):
+    data: dict = matching.find_one({'user_id': user_id})
+    if not data:
+        return False, "You have no profile! Create one using `/matching profile create`"
+    if not data.get('approved'):
+        return False, "You haven't been approved! Please wait for it to be approved/denied."
 
-    data:dict = matching.find_one({'user_id':user_id})
-    if not data: return False, "You have no profile! Create one using `/matching profile create`"
-    if not data.get('approved'): return False, "You havent been approved! please wait for it to be approved/denied"
-
-    age =  int(data.get('age'))
-
+    age = int(data.get('age'))
     user_ids = [member.id for member in members]
-
     rejected_ids = data.get('rejected_pairs', [])
-
     selected_ids = data.get('selected_pairs', [])
 
-    
     profiles = []
 
     for profile in matching.find({'approved': True}):
@@ -50,6 +47,7 @@ def find_compatible_profiles(user_id:int, members:list[Member]):
             or int(profile['age']) < age - 2
             or profile.get('paired') is True
             or profile['user_id'] in rejected_ids
+            or profile['user_id'] in selected_ids
         ):
             continue
         
@@ -57,6 +55,5 @@ def find_compatible_profiles(user_id:int, members:list[Member]):
 
     if not profiles:
         return False, "their is no one for you to match with, sorry!"
-    
     
     return True, profiles

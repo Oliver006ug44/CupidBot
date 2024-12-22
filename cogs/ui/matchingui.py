@@ -9,6 +9,7 @@ class SwipeView(View):
         super().__init__(timeout=None)
         self.user = user
         self.bot = bot
+        self.swiped_users = []
     
     @button(label='Swipe Left', emoji="⬅️")
     async def swipe_left(self, interaction:Interaction, button:Button):
@@ -16,11 +17,18 @@ class SwipeView(View):
 
         profiles = get_compatible(interaction.user)
         try:
-            user = fetch_random_user(self.bot, profiles) # gets a user we can see
+            user = fetch_random_user(self.bot, profiles)
         except RecursionError:
             return await interaction.response.send_message("You are out of people to match with!", ephemeral=True)
+
         random_profile_embed = generate_profile_embed(user=user)
-        await interaction.response.edit_message(embed=random_profile_embed, view=SwipeView(user, self.bot))
+
+        while user.id in self.swiped_users:
+            user = fetch_random_user(self.bot, profiles)
+            random_profile_embed = generate_profile_embed(user=user)
+        
+        self.swiped_users.append(user.id)
+        await interaction.response.edit_message(embed=random_profile_embed, view=SwipeView(self.user, self.bot))
         
     
     @button(label='Swipe Right', emoji="➡️")
@@ -29,25 +37,28 @@ class SwipeView(View):
         edit_profile(interaction.user, {'$push': {'selected_pairs': self.user.id}}) # reject, queue up a new profile
         edit_profile(self.user, {"$push": {'paired_with_us':interaction.user.id}})
 
-        
         their_data = get_profile(self.user)
         
         if interaction.user.id in their_data.get('selected_pairs', []):
             await interaction.followup.send(f"Congrats! you and {self.user.mention} matched! Feel free to dm each other or smth... idfk", ephemeral=True)
             try:
                 await self.user.send(f"You matched with {interaction.user.mention}! Feel free to dm each other")
-            except: await interaction.followup.send("I couldnt dm them! you'll have to find a way to reach them!", ephemeral=True)
+            except:
+                await interaction.followup.send("I couldnt dm them! you'll have to find a way to reach them!", ephemeral=True)
             await sleep(3)
-
-
 
         profiles = get_compatible(interaction.user)
 
         try:
-            user = fetch_random_user(self.bot, profiles) # gets a user we can see
+            user = fetch_random_user(self.bot, profiles)
         except RecursionError:
             return await interaction.response.send_message("You are out of people to match with!", ephemeral=True)
 
-
         random_profile_embed = generate_profile_embed(user=user)
-        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(user, self.bot))
+
+        while user.id in self.swiped_users:
+            user = fetch_random_user(self.bot, profiles)
+            random_profile_embed = generate_profile_embed(user=user)
+        
+        self.swiped_users.append(user.id)
+        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(self.user, self.bot))

@@ -32,6 +32,8 @@ class Profile():
         self.rejected_pairs = data.get('rejected_pairs', [])
         self.paired_with_us = data.get('paired_with_us', [])
         self.tos = data.get('tos_agreed')
+        self.profile_message_id = data.get('profile_message_id')
+        self.profile_channel_id = data.get('profile_channel_id')
         self.data:dict = data
 
     

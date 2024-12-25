@@ -116,19 +116,26 @@ class ProfileCreationView(View):
         await interaction.response.send_modal(ProfileEditModal(interaction.user, self.bot))
 
     
-    @button(label="Submit Profile", style=ButtonStyle.green, disabled=True)
+    @button(label="Submit Profile", style=ButtonStyle.green)
     async def submit_profile(self, interaction:Interaction, button:Button):
         # send profile to home server, and wait for verifcation
         profile = get_profile(interaction.user, self.bot)
+        # delete the old profile message
+        if profile.profile_message_id:
+            channel = interaction.guild.get_channel(profile.profile_channel_id)
+            message = await channel.fetch_message(profile.profile_message_id)
+            await message.delete()
+            profile.edit({"$unset": {"profile_message_id":"", "profile_channel_id":""}})
         
-        if profile.approved == "Waiting" or profile.approved == False and not self.edit:
+        if profile.approved == "waiting" or profile.approved == False and not self.edit:
             return await interaction.response.send_message('Your profile was already submitted!', ephemeral=True)
         
         guild = self.bot.get_guild(1282801630575595572)
         verifcation_channel = guild.get_channel(1307474634559459360)
         msg = await verifcation_channel.send("Waiting..")
 
-        await msg.edit(content="", embed=profile.generate_embed(), view=SubmissionView(self.bot))
+        await msg.edit(content="", embed=profile.generate_embed(color=0xfffacd), view=SubmissionView(self.bot))
         profile.queue_profile(msg.id)
-        await interaction.response.send_message("Submitted!", ephemeral=True)
+        profile.edit({"$set":{"approved":"waiting"}})
+        await interaction.response.send_message("Submitted! it may take up to 24 hours to be approved!", ephemeral=True)
 

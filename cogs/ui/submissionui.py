@@ -30,7 +30,7 @@ class SubmissionView(View):
         try:
             await profile.user.send("Your profile was approved! use `/matching match` to start matching with people")
         except: await interaction.followup.send(f"I cant Dm {profile.user.mention}")
-        gender = profile.get('gender')
+        gender = profile.gender
         if gender == 'Male':
             channel = interaction.guild.get_channel(1307474580008599663)
         elif gender == 'Female':
@@ -39,7 +39,8 @@ class SubmissionView(View):
             channel = interaction.guild.get_channel(1307480874119462952)
         
         
-        await channel.send(embed=profile.generate_embed())
+        msg = await channel.send(embed=profile.generate_embed())
+        await profile.edit({"$set":{"profile_message_id":msg.id, "profile_channel_id":msg.channel.id}}) # store the message just in case we re-submit
 
             
 

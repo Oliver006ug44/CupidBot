@@ -181,7 +181,7 @@ class Matching(Cog):
         if profile.approved != True: return await interaction.response.send_message("Your profile hasnt been approved yet", ephemeral=True)
 
         random_profile = profile.get_random_profile()
-        await interaction.response.send_message(embed=random_profile.generate_embed())
+        await interaction.response.send_message(embed=random_profile.generate_embed(), view=SwipeView(interaction.user, self.bot))
         
 
         

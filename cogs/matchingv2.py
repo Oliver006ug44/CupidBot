@@ -140,12 +140,24 @@ class Matching(Cog):
 
     @matching.command(name="compatible", description="see all the compatiable profiles")
     async def compatible(self, interaction:Interaction, member:Member=None):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
         member = member if member else interaction.user
         profile = get_profile(member, self.bot)
         compatible = profile.get_compatible_profiles()
         total = len(compatible)
         await interaction.response.send_message(f"You currently have `{total}` compatible profiles! (this excludes profiles you swiped right on)")
+    
+
+    @matching.command(name="compatible-owner", description="Fuck off")
+    async def compatible(self, interaction:Interaction, member:Member=None):
+        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('This is owner only', ephemeral=True)
+        member = member if member else interaction.user
+        profile = get_profile(member, self.bot)
+        compatible = profile.get_compatible_profiles()
+        description = "\n".join(f"{profile.user.mention} | `{profile.age}`" for profile in compatible)
+        embed = Embed(title=f"All compatible for {interaction.user.name}", description=description)
+        
+        await interaction.response.send_message(embed=embed)
         
         
     
@@ -164,6 +176,12 @@ class Matching(Cog):
     @matching.command(name="match", description="match with people and find a pair!")
     async def match(self, interaction:Interaction):
         if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        try: profile = get_profile(interaction.user, self.bot)
+        except NoProfileException: return await interaction.response.send_message(f"You have no profile! use `/matching profile create` to make one", ephemeral=True)
+        if profile.approved != True: return await interaction.response.send_message("Your profile hasnt been approved yet", ephemeral=True)
+
+        random_profile = profile.get_random_profile()
+        await interaction.response.send_message(embed=random_profile.generate_embed())
         
 
         

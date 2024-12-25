@@ -52,8 +52,9 @@ class Profile():
 
         our_age = self.age
         their_age = other.age
-        age_range = our_age + 2  - their_age
-        if age_range <= 0 and age_range >=4: return False # they are within our age range
+        
+        if our_age -2 > their_age: return False
+        if our_age +2 < their_age: return False
 
         if other.id not in self.selected_pairs: # we didnt select them already
             return True
@@ -84,7 +85,7 @@ class Profile():
             Profile: a random profile
         """
         compatible_profiles = self.get_compatible_profiles()
-        return compatible_profiles[0, len(compatible_profiles)-1]
+        return compatible_profiles[random.randint(0, len(compatible_profiles)-1)]
 
 
         

@@ -44,12 +44,6 @@ class SubmissionView(View):
 
             
 
-        
-
-
-
-
-        
 
 
     @button(label="Deny", style=ButtonStyle.red, custom_id="deny_id")

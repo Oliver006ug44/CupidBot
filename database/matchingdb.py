@@ -22,23 +22,23 @@ class Profile():
         self.bot = bot
         if data == None:
             raise NoProfileException()
-        self.id = data.get('user_id')
+        self.id:int = int(data.get('user_id'))
         self.user = bot.get_user(self.id)
         if not self.user: raise UserNotFoundException()
         self.name:str = data.get('name')
         self.pronouns:str = data.get('pronouns')
         self.gender:str = data.get('gender')
-        self.age:int = data.get('age')
+        self.age:int = data.get('age', 0)
         self.sexuality:str = data.get('sexuality')
         self.bio:str = data.get('bio')
         self._id = data.get('_id')
         self.approved:bool = data.get('approved')
-        self.selected_pairs = data.get('selected_pairs', [])
-        self.rejected_pairs = data.get('rejected_pairs', [])
-        self.paired_with_us = data.get('paired_with_us', [])
-        self.tos = data.get('tos_agreed')
-        self.profile_message_id = data.get('profile_message_id')
-        self.profile_channel_id = data.get('profile_channel_id')
+        self.selected_pairs:list[int] = data.get('selected_pairs', [])
+        self.rejected_pairs:list[int] = data.get('rejected_pairs', [])
+        self.paired_with_us:list[int] = data.get('paired_with_us', [])
+        self.tos:str = data.get('tos_agreed')
+        self.profile_message_id:int = data.get('profile_message_id')
+        self.profile_channel_id:int = data.get('profile_channel_id')
         self.data:dict = data
 
     
@@ -56,8 +56,8 @@ class Profile():
         if other.id in self.rejected_pairs: return False # we didnt reject them
         if other.id in self.selected_pairs: return False
 
-        our_age = self.age
-        their_age = other.age
+        our_age = int(self.age)
+        their_age = int(other.age)
         
         if our_age -2 > their_age: return False
         if our_age +2 < their_age: return False
@@ -104,6 +104,8 @@ class Profile():
 
     def edit(self, data, upsert=False):
         result = MATCHING.update_one({'_id':self._id}, data, upsert=upsert)
+        data = MATCHING.find_one({'_id':self._id})
+        self.__init__(self.bot, data)
         return result
     
     def generate_embed(self, color=0xffa1dc):

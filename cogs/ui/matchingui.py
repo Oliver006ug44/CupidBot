@@ -22,7 +22,7 @@ class SwipeView(View):
         
 
         try: random_profile = profile.get_random_profile()
-        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=None)
+        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=[], view=None)
         random_profile_embed = random_profile.generate_embed()
 
 
@@ -48,7 +48,7 @@ class SwipeView(View):
             await sleep(3)
 
         try: random_profile = profile.get_random_profile()
-        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=None)
+        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=[], view=None)
         random_profile_embed = random_profile.generate_embed()
 
 

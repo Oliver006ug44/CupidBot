@@ -111,7 +111,7 @@ class Matching(Cog):
 
     @profile.command(name="delete")
     async def profile_delete(self, interaction:Interaction):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
     
 
 
@@ -120,7 +120,7 @@ class Matching(Cog):
         member = "The member of the profile's status you want to see"
     )
     async def profile_status(self, interaction:Interaction, member:Member=None):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
         member = member if member else interaction.user
         profile_data = get_profile(member)
         if not profile_data: return await interaction.response.send_message("You have no profile, try `/matching profile create`")
@@ -175,7 +175,6 @@ class Matching(Cog):
 
     @matching.command(name="match", description="match with people and find a pair!")
     async def match(self, interaction:Interaction):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
         try: profile = get_profile(interaction.user, self.bot)
         except NoProfileException: return await interaction.response.send_message(f"You have no profile! use `/matching profile create` to make one", ephemeral=True)
         if profile.approved != True: return await interaction.response.send_message("Your profile hasnt been approved yet", ephemeral=True)
@@ -189,7 +188,7 @@ class Matching(Cog):
     
     @matching.command(name="purge", description="purge all the people you swiped right or left on")
     async def matching_purge(self, interaction:Interaction):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
         await interaction.response.defer()
         profile = get_profile(interaction.user, self.bot)
         

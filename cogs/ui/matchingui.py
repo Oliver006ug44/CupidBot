@@ -1,9 +1,12 @@
 from discord.ui import Select, View, Modal, TextInput, button, DynamicItem
 from discord import Button, ButtonStyle, Interaction, TextStyle, Embed, SelectOption, User
 from discord.ext.commands import Bot
-from database.matchingdb import get_compatible, get_profile
+from database.matchingdb import get_profile
 import random
 from asyncio import sleep
+
+def get_compatible():
+    return []
 
 
 class SwipeView(View):

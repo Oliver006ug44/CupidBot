@@ -12,7 +12,7 @@ from cogs.roles import RoleView
 from cogs.welcome import Welcome
 from cogs.ui.submissionui import SubmissionView
 
-from database.matchingdb import MATCHING
+from database.matchingdb import MATCHING, Profile
 
 class Bot(Bot):
     def __init__(self):
@@ -32,6 +32,22 @@ class Bot(Bot):
 
 bot = Bot()
 tree = bot.tree
+
+
+@bot.command()
+async def fix_ages(ctx:Context):
+    profiles = MATCHING.find()
+    for data in profiles:
+        try:
+            profile = Profile(bot, data)
+            if profile.age:
+                profile.edit({"$set":{"age":int(profile.age)}})
+        except:continue
+    
+    await ctx.send("Done!")
+
+        
+        
 
 
 @bot.command()

@@ -45,13 +45,12 @@ class ProfileAgeSelect(Select):
     def __init__(self, bot:Bot):
         self.bot = bot
         options = [SelectOption(label=f"{age}") for age in range(13,24)]
-        options.append(SelectOption(label="25+"))
         super().__init__(custom_id="profile_age", placeholder="Select Your Age", min_values=1, max_values=1, options=options)
 
 
     async def callback(self, interaction:Interaction):
         profile = get_profile(interaction.user, self.bot)
-        profile.edit({"$set":{"age":self.values[0]}})
+        profile.edit({"$set":{"age":int(self.values[0])}})
         await interaction.response.edit_message(embed=profile.generate_embed())
         
 

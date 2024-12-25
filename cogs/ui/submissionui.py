@@ -40,7 +40,7 @@ class SubmissionView(View):
         
         
         msg = await channel.send(embed=profile.generate_embed())
-        await profile.edit({"$set":{"profile_message_id":msg.id, "profile_channel_id":msg.channel.id}}) # store the message just in case we re-submit
+        profile.edit({"$set":{"profile_message_id":msg.id, "profile_channel_id":msg.channel.id}}) # store the message just in case we re-submit
 
             
 

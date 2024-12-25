@@ -20,7 +20,7 @@ class Bot(Bot):
 
     async def setup_hook(self) -> None:
         self.add_view(RoleView())
-        self.add_view(SubmissionView())
+        self.add_view(SubmissionView(self))
         await self.add_cog(Levels())
         await self.add_cog(Moderation())
         await self.add_cog(Config())

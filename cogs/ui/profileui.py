@@ -1,6 +1,6 @@
 from discord.ui import View, Button, button, Modal, TextInput, Select
 from discord import ButtonStyle, Member, Interaction, TextStyle, Embed, SelectOption
-from database.matchingdb import get_profile
+from database.matchingdb import get_profile, MATCHING
 from cogs.ui.submissionui import SubmissionView
 from discord.ext.commands import Bot
 
@@ -18,8 +18,7 @@ class TosConfirmationView(View):
             return await interaction.response.send_message("You already responded to this!", ephemeral=True)
         
         self.responded = True
-        profile = get_profile(interaction.user, self.bot)
-        profile.edit({"$set": {"tos_agreed":True}}, True)
+        MATCHING.insert_one({"user_id":interaction.user.id, "tos_agreed":True})
         await interaction.response.send_message("Done! Feel free to re-run the command", ephemeral=True)
 
 
@@ -79,11 +78,13 @@ class ProfileEditModal(Modal):
     def __init__(self, user:Member, bot:Bot):
         self.bot = bot
         super().__init__(title="Edit Profile", timeout=None, custom_id="edit_profile_modal")
-        profile_data:dict = get_profile(user)
-        if profile_data:
-            self.name.default = profile_data.get('name')
-            self.pronouns.default = profile_data.get('pronouns')
-            self.bio.default = profile_data.get('bio')
+        try:
+            profile = get_profile(user, bot)
+            
+            self.name.default = profile.name
+            self.pronouns.default = profile.pronouns
+            self.bio.default = profile.bio
+        except:pass
         
 
     
@@ -113,10 +114,10 @@ class ProfileCreationView(View):
     
     @button(label="Edit Profile", style=ButtonStyle.gray)
     async def edit_profile(self, interaction:Interaction, button:Button):
-        await interaction.response.send_modal(ProfileEditModal(interaction.user))
+        await interaction.response.send_modal(ProfileEditModal(interaction.user, self.bot))
 
     
-    @button(label="Submit Profile", style=ButtonStyle.green)
+    @button(label="Submit Profile", style=ButtonStyle.green, disabled=True)
     async def submit_profile(self, interaction:Interaction, button:Button):
         # send profile to home server, and wait for verifcation
         profile = get_profile(interaction.user, self.bot)
@@ -127,7 +128,7 @@ class ProfileCreationView(View):
         guild = self.bot.get_guild(1282801630575595572)
         verifcation_channel = guild.get_channel(1307474634559459360)
         msg = await verifcation_channel.send("Waiting..")
-        
+
         await msg.edit(content="", embed=profile.generate_embed(), view=SubmissionView(self.bot))
         profile.queue_profile(msg.id)
         await interaction.response.send_message("Submitted!", ephemeral=True)

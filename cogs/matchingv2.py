@@ -1,6 +1,6 @@
 from database.matchingdb import NoProfileException, UserNotFoundException, get_profile, get_compatible, MATCHING
 from discord.app_commands import Group, describe, default_permissions
-from discord import Embed, Member, Interaction, TextChannel
+from discord import Embed, Member, Interaction, TextChannel, NotFound
 from discord.ext.commands import Cog, command, Bot
 from discord.ext import tasks
 from cogs.ui.profileui import TosConfirmationView, ProfileCreationView
@@ -65,12 +65,31 @@ class Matching(Cog):
     @profile.command(name='load', description="loads your profile from a message")
     @describe(channel="The channel where the message is stored",message_id = 'the message id of the embed that has your profile')
     async def profile_load(self, interaction:Interaction, channel:TextChannel, message_id:str):
-        if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
-        message = await channel.fetch_message(int(message_id))
-        factored_desc = message.embeds[0].description.replace("❥﹒", '').replace(':', '').replace("Name", '').replace("Pronouns", '').replace("Name", '').replace("Gender", '').replace("Age", '').replace("Sexuality", '').replace("Bio", '').replace('User', '').replace('|', '\n').split('\n')
-        data = "\n".join(sub.strip() for sub in factored_desc)
+        try:
+            message = await channel.fetch_message(int(message_id))
+        except NotFound:
+            return await interaction.response.send_message("You provided a WRONG message_id, please watch the video in annoucements")
 
-        await interaction.response.send_message(data)
+        factored_desc = message.embeds[0].description.replace("❥﹒", '').replace(':', '').replace("Name", '').replace("Pronouns", '').replace("Name", '').replace("Gender", '').replace("Age", '').replace("Sexuality", '').replace("Bio", '').replace('User', '').replace('|', '\n').replace('`','').split('\n')
+        data = "\n".join(sub.strip() for sub in factored_desc)
+        fragmented_data = data.split('\n')
+        if len(fragmented_data) <6:
+            return await interaction.response.send_message("You provided a WRONG message_id, please rewatch the video in annoucements")
+        bio = "\n".join(fragmented_data[6::])
+        
+        
+        MATCHING.update_one({"user_id": interaction.user.id}, {
+            "$set": {
+                "name": fragmented_data[1],
+                "pronouns": fragmented_data[2],
+                "gender": fragmented_data[3],
+                "age": fragmented_data[4],
+                "sexuality": fragmented_data[5],
+                "bio":bio,
+                "tos_agreed":True}
+        }, upsert=True)
+
+        await interaction.response.send_message("Done! Your profile is loaded into the database, check back in a few days then run `/matching profile edit` to resubmit it, we are gonna wait a few days until the new system is tested and ready")
         
 
 
@@ -83,7 +102,7 @@ class Matching(Cog):
         member = member if member else interaction.user
         await interaction.response.defer()
         try:
-            profile = get_profile(interaction.user, self.bot)
+            profile = get_profile(member, self.bot)
         except UserNotFoundException: return await interaction.followup.send("The user for the profile was not found! the user is out of scope of the bot")
         except NoProfileException: return await interaction.followup.send(f"{member.mention} does not have a profile!")
         await interaction.followup.send(embed=profile.generate_embed())

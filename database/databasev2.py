@@ -4,6 +4,7 @@ client = MongoClient("mongodb://localhost:27017/")
 cupid = client.get_database("cupid")
 LEVELS = cupid.get_collection('levels')
 INFRACTIONS = cupid.get_collection('infractions')
+MODERATION = cupid.get_collection('moderation')
 CONFIG = cupid.get_collection('config')
 MATCHING = cupid.get_collection('matching')
 

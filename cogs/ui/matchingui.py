@@ -15,6 +15,7 @@ class SwipeView(View):
     @button(label='Swipe Left', emoji="⬅️")
     async def swipe_left(self, interaction:Interaction, button:Button):
         await interaction.response.defer()
+        
         profile = get_profile(interaction.user, self.bot)
         profile.edit({'$push': {'rejected_pairs': self.user.id}})
         
@@ -25,8 +26,9 @@ class SwipeView(View):
         user = self.bot.get_user(random_profile.get('user_id'))
         if not user:
             return await interaction.followup.send("the user i tried to pull has left the scope of the bot! rerun `/matching match`", ephemeral=True)
+
         
-        random_profile_embed = generate_profile_embed(user=user)
+        random_profile_embed = profile.generate_embed()
 
 
         await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(user, self.bot))
@@ -35,11 +37,13 @@ class SwipeView(View):
     @button(label='Swipe Right', emoji="➡️")
     async def swipe_right(self, interaction:Interaction, button:Button):
         await interaction.response.defer()
-        edit_profile(interaction.user, {'$push': {'selected_pairs': self.user.id}}) # reject, queue up a new profile
-        edit_profile(self.user, {"$push": {'paired_with_us':interaction.user.id}})
 
-        
-        their_data = get_profile(self.user)
+        author_profile = get_profile(interaction.user, self.bot)
+        author_profile.edit({'$push': {'selected_pairs': self.user.id}})
+
+        their_data = get_profile(self.user, self.bot)
+        their_data.edit({"$push": {'paired_with_us':interaction.user.id}})
+
         
         if interaction.user.id in their_data.get('selected_pairs', []):
             await interaction.followup.send(f"Congrats! you and {self.user.mention} matched! Feel free to dm each other or smth... idfk", ephemeral=True)
@@ -56,6 +60,6 @@ class SwipeView(View):
         if not user:
             return await interaction.followup.send("the user i tried to pull has left the scope of the bot! rerun `/matching match`", ephemeral=True)
 
-
-        random_profile_embed = generate_profile_embed(user=user)
+        get_random_profile = get_profile(user, self.bot)
+        random_profile_embed = get_random_profile.generate_embed()
         await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(user, self.bot))

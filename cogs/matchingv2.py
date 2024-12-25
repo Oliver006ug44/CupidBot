@@ -1,4 +1,4 @@
-from database.matchingdb import NoProfileException, UserNotFoundException, get_profile, get_compatible, MATCHING
+from database.matchingdb import NoProfileException, UserNotFoundException, get_profile, MATCHING
 from discord.app_commands import Group, describe, default_permissions
 from discord import Embed, Member, Interaction, TextChannel, NotFound
 from discord.ext.commands import Cog, command, Bot
@@ -142,16 +142,12 @@ class Matching(Cog):
     async def compatible(self, interaction:Interaction, member:Member=None):
         if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
         member = member if member else interaction.user
-        profile:dict = get_profile(member)
-        if not profile:
-            return await interaction.response.send_message("I couldnt find your")
+        profile = get_profile(member, self.bot)
+        compatible = profile.get_compatible_profiles()
+        total = len(compatible)
+        await interaction.response.send_message(f"You currently have `{total}` compatible profiles! (this excludes profiles you swiped right on)")
         
-        profiles = get_compatible(member)
-        ignore_selected = get_compatible(member, ignore_selected=True)
-        if get_compatible == None:
-            return await interaction.response.send_message("Couldn't find any compatible profiles! or your profile isnt approved/ not found")
-        total = (len(ignore_selected))
-        await interaction.response.send_message(f'you have `{len(profiles)}` compatible profiles out of the possible `{total}`, this means you already swiped on `{total-len(profiles)}` profiles!')
+        
     
 
 
@@ -160,34 +156,17 @@ class Matching(Cog):
     async def compatible_view(self, interaction:Interaction, member:Member=None):
         if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('this command is reserved for the owner only. it will be hidden soon~ish', ephemeral=True)
 
-        member = member if member else interaction.user
-        profiles = get_compatible(member)
-        profile_string = "\n".join(f"{profile.get('name')} | `{profile.get('age')}`" for profile in profiles)
-        profiles_embed = Embed(title="All compatible profiles", description=profile_string, color=0xffa1dc)
-
-        await interaction.response.send_message(embed=profiles_embed)
+        
+        
 
 
 
     @matching.command(name="match", description="match with people and find a pair!")
     async def match(self, interaction:Interaction):
         if interaction.user.id != 1267552151454875751: await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
-        try:
-            our_profile = get_profile(interaction.user, self.bot)
-        except NoProfileException: return await interaction.response.send_message("You have no profile! make one with `/matching profile create`", ephemeral=True)
-        if not our_profile.approved: return await interaction.response.send_message("You cant match until you are approved, see `/matching profile status`", ephemeral=True)
+        
 
-        profiles = get_compatible(interaction.user)
-        if len(profiles) == 0: return await interaction.response.send_message("You are out of profiles to match with!", ephemeral=True)
-        # TODO Make get random profile a function that returns a profile object
-        random_profile:dict = profiles[random.randint(0, len(profiles)-1)]
-
-        user = self.bot.get_user(random_profile.get('user_id'))
-        try:
-            generated_profile = get_profile(user, self.bot)
-        except UserNotFoundException: return await interaction.response.send_message("An error occured! `UserNotFoundException`, try again!")
-
-        await interaction.response.send_message(embed=generated_profile.generate_embed(), view=SwipeView(user, self.bot), ephemeral=True)
+        
     
     @matching.command(name="purge", description="purge all the people you swiped right or left on")
     async def matching_purge(self, interaction:Interaction):

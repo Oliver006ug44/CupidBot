@@ -44,20 +44,16 @@ class Profile():
         Returns:
             bool: True if compatible, false if not
         """
-        if self == other: return False
-        if not self.approved or not other.approved: return False
-        if other.id in self.rejected_pairs: return False
+        if self == other: return False # they arent us
+        if not self.approved or not other.approved: return False # both of us must be approved
+        if other.id in self.rejected_pairs: return False # we didnt reject them
 
         our_age = self.age
         their_age = other.age
         age_range = our_age + 2  - their_age
-        if age_range <= 0 and age_range >=4: return False
+        if age_range <= 0 and age_range >=4: return False # they are within our age range
 
-        if (
-            other.id not in self.rejected_pairs
-            and self.id not in other.selected_pairs
-            and other.id not in self.selected_pairs
-            ):
+        if other.id not in self.selected_pairs: # we didnt select them already
             return True
         else: return False
 

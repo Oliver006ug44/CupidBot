@@ -1,4 +1,4 @@
-from database.matchingdb import NoProfileException, UserNotFoundException, get_profile, MATCHING
+from database.matchingdb import NoProfileException, UserNotFoundException, get_profile, MATCHING, NoCompatibleProfilesError
 from discord.app_commands import Group, describe, default_permissions
 from discord import Embed, Member, Interaction, TextChannel, NotFound
 from discord.ext.commands import Cog, command, Bot
@@ -180,8 +180,9 @@ class Matching(Cog):
         except NoProfileException: return await interaction.response.send_message(f"You have no profile! use `/matching profile create` to make one", ephemeral=True)
         if profile.approved != True: return await interaction.response.send_message("Your profile hasnt been approved yet", ephemeral=True)
 
-        random_profile = profile.get_random_profile()
-        await interaction.response.send_message(embed=random_profile.generate_embed(), view=SwipeView(interaction.user, self.bot))
+        try: random_profile = profile.get_random_profile()
+        except NoCompatibleProfilesError: return await interaction.response.send_message("You are out of profiles to match with! :3", ephemeral=True)
+        await interaction.response.send_message(embed=random_profile.generate_embed(), view=SwipeView(random_profile.user, self.bot), ephemeral=True)
         
 
         

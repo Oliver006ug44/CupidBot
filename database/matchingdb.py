@@ -12,6 +12,11 @@ class UserNotFoundException(BaseException):
         self.message = message
         super().__init__(self.message)
 
+class NoCompatibleProfilesError(BaseException):
+    def __init__(self, message="Ran out of compatible profiles"):
+        self.message = message
+        super().__init__(self.message)
+
 class Profile():
     def __init__(self, bot:Bot, data:dict):
         self.bot = bot
@@ -46,9 +51,10 @@ class Profile():
         Returns:
             bool: True if compatible, false if not
         """
-        if self == other: return False # they arent us
+        if self.id == other.id: return False # they arent us
         if not self.approved or not other.approved: return False # both of us must be approved
         if other.id in self.rejected_pairs: return False # we didnt reject them
+        if other.id in self.selected_pairs: return False
 
         our_age = self.age
         their_age = other.age
@@ -56,9 +62,10 @@ class Profile():
         if our_age -2 > their_age: return False
         if our_age +2 < their_age: return False
 
-        if other.id not in self.selected_pairs: # we didnt select them already
-            return True
-        else: return False
+        return True
+
+        
+        
 
     def get_compatible_profiles(self) -> list["Profile"]:
         """Generates a list of all compatible profiles for this user
@@ -74,6 +81,9 @@ class Profile():
             except: continue
             if not self.compare(other_profile): continue
             compatible_profiles.append(other_profile)
+
+        if len(compatible_profiles) == 0:
+            raise NoCompatibleProfilesError()
         
         return compatible_profiles
     

@@ -1,7 +1,7 @@
 from discord.ui import Select, View, Modal, TextInput, button, DynamicItem
 from discord import Button, ButtonStyle, Interaction, TextStyle, Embed, SelectOption, User
 from discord.ext.commands import Bot
-from database.matchingdb import get_profile
+from database.matchingdb import get_profile, NoCompatibleProfilesError
 import random
 from asyncio import sleep
 
@@ -15,22 +15,23 @@ class SwipeView(View):
     
     @button(label='Swipe Left', emoji="⬅️")
     async def swipe_left(self, interaction:Interaction, button:Button):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
         
         profile = get_profile(interaction.user, self.bot)
         profile.edit({'$push': {'rejected_pairs': self.user.id}})
         
 
-        random_profile = profile.get_random_profile()
+        try: random_profile = profile.get_random_profile()
+        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=None)
         random_profile_embed = random_profile.generate_embed()
 
 
-        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(self.user, self.bot))
+        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(random_profile.user, self.bot))
         
     
     @button(label='Swipe Right', emoji="➡️")
     async def swipe_right(self, interaction:Interaction, button:Button):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         profile = get_profile(interaction.user, self.bot)
         profile.edit({'$push': {'selected_pairs': self.user.id}})
@@ -46,9 +47,9 @@ class SwipeView(View):
             except: await interaction.followup.send("I couldnt dm them! you'll have to find a way to reach them!", ephemeral=True)
             await sleep(3)
 
-
-        random_profile = profile.get_random_profile()
+        try: random_profile = profile.get_random_profile()
+        except NoCompatibleProfilesError: return await interaction.edit_original_response(content="You are out of profiles to match with! :3", embeds=None)
         random_profile_embed = random_profile.generate_embed()
 
 
-        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(self.user, self.bot))
+        await interaction.edit_original_response(embed=random_profile_embed, view=SwipeView(random_profile.user, self.bot))

@@ -16,6 +16,7 @@ class Levels(Cog):
     # event listener for level ups
     @Cog.listener('on_message')
     async def level_xp_gain(self, message:Message):
+        return
         user = message.author
         if user.bot or not message.guild: return
         try: level = get_level(self.bot)
@@ -26,47 +27,10 @@ class Levels(Cog):
 
         state, msg = level.inc_xp(multiplier)
         
-        
-
-        
-        
-
-
-
-    @command(description="View the level of yourself or another user")
-    async def view_level(self, interaction:Interaction, member:Member=None, hidden:bool=False):
-        await interaction.response.defer()
-        if not member: member = interaction.user
-        data:dict = levels_data.find_one({"user_id":member.id})
-        leaderboard:list = sorted(levels_data.find(), key=lambda x:x.get('level'), reverse=True)
-        user_ids = [record.get('user_id') for record in leaderboard] # make it easier to grab the index
-
-
-        if not data:
-            xp = 0
-            level = 1
-        else:
-            xp = data.get("xp")
-            level = data.get("level")
-
-        
-        rank_place= int_to_ordinal(user_ids.index(member.id) + 1)
-        rank = f"{rank_place} Place"
-        
-        
-        generate_level(member.name, level,rank,xp,member.avatar.url)
-        file = File('output.png', filename=f"output_card.png")
-        
-        await interaction.followup.send(ephemeral=hidden, file=file)
-    
-
 
     @command()
     async def leaderboard(self, interaction:Interaction):
-        data:list = sorted(levels_data.find(), key=lambda x:x.get('level'), reverse=True)
-        description = "\n".join(f"{i+1} | Level `{record.get('level')}` | Xp `{record.get('xp')}` |  {interaction.guild.get_member(int(record.get('user_id'))).mention}" for i, record in enumerate(data[0:10]))
-        leaderboard_embed = Embed(title="Leaderboard", description=description, color=0xffa1dc)
-        await interaction.response.send_message(embed=leaderboard_embed)
+        await interaction.response.send_message('Under Construction!', ephemeral=True)
 
 
 
@@ -75,18 +39,12 @@ class Levels(Cog):
 
 
 
-    @levels.command(name="set_xp", description="sets a users xp")
-    async def level_set_xp(self, interaction:Interaction, member:Member, xp:int):
-        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message("Fuck you for trying casties")
-        levels_data.update_one({"user_id":member.id}, {"$set":{"xp":xp}}, upsert=True)
-        await interaction.response.send_message(f"I have set {member.mention}'s xp to `{xp}`")
+    @levels.command(name="edit", description="edits a users level data")
+    async def level_set_xp(self, interaction:Interaction, member:Member, level:int, xp:int):
+        await interaction.response.send_message('Under Construction!', ephemeral=True)
     
 
 
-    @levels.command(name="set_level", description="sets a users level")
-    async def level_set_level(self, interaction:Interaction, member:Member, level:int):
-        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message("Fuck you for trying casties")
-        levels_data.update_one({"user_id":member.id}, {"$set":{"level":level}}, upsert=True)
-        await interaction.response.send_message(f"I have set {member.mention}'s level to `{level}`")
+    
 
     

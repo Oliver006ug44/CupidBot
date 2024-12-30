@@ -24,8 +24,8 @@ class Level():
         self.doc = {'_id':self._id}
         self.date = data.get('date', 0)
     
-    def edit(self, data):
-        LEVELS.update_one(self.doc, data)
+    def edit(self, data, upsert=False):
+        LEVELS.update_one(self.doc, data, upsert=upsert)
         data = LEVELS.find_one(self.doc)
         self.__init__(self.bot, data)
 
@@ -59,6 +59,33 @@ class Level():
 
 
 def get_level(bot:Bot, user:User) -> Level:
+    """gets the level of a user
+
+    Args:
+        bot (Bot): the bot to be able to do the .get_user() call
+        user (User): user user to get the level of
+
+    Returns:
+        Level: the level object of the user
+    """
     return Level(bot, LEVELS.find_one({"user_id":user.id}))
 
         
+def create_level(bot:Bot, user:User) -> Level:
+    """Creates a level for a user
+
+    Args:
+        bot (Bot): the bot to be able to do the .get_user() call
+        user (User): the user for the level to be created from
+
+    Returns:
+        Level: the level object of the user
+    """
+    data = {
+        "user_id":user.id,
+        "level":0,
+        "xp":0
+    }
+    level = Level(bot, data)
+    level.edit(data, upsert=True)
+    return level

@@ -1,14 +1,20 @@
 from discord import Embed, Member, Message, User
 from discord.ext.commands import Bot
-from database.databasev2 import MATCHING, NoProfileException
+from database.databasev2 import MATCHING, UserNotFoundException
 from time import time
 
 import random
 
 # puts the profile in a queue to be verifed
 
-class UserNotFoundException(BaseException):
-    def __init__(self, message="The discord user is out of scope of the bot"):
+class NoProfileException(Exception):
+    """
+    Custom exception raised when a user profile is not found.
+
+    Attributes:
+        message (str): Explanation of the error.
+    """
+    def __init__(self, message="No profile found for the user."):
         self.message = message
         super().__init__(self.message)
 

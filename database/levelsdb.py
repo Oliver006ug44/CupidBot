@@ -111,8 +111,7 @@ class Level():
         percentage = xp/(level*100)
 
         draw.rounded_rectangle((rect_x, rect_y,rect_x+width, rect_y+heigth),3,0xffffffff, outline=0xffffffff, width=3) # bg rect
-        draw.rounded_rectangle((rect_x, rect_y,rect_x+width*percentage, rect_y+heigth-1),3,0xffffa1dc) # bg rect
-
+        draw.rounded_rectangle((rect_x, rect_y,rect_x+width*percentage, rect_y+heigth-1),3,0xffffa1dc)
         xp_text = f"{xp}/{level*100}"
         text_bbox  = draw.textbbox((0,0), xp_text, font=xp_font)
         text_width = text_bbox[2] - text_bbox[0]

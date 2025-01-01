@@ -15,6 +15,10 @@ class Reward():
         self.data = data
         self.add = [server.get_role(r) for r in data.get('add', [])]
         self.remove = [server.get_role(r) for r in data.get('remove', [])]
+
+        self.base_data:dict = data.get('base_data', {})
+        self.base_remove = [server.get_role(r) for r in self.base_data.get('remove', [])]
+        self.level_rewards:LevelRewards = data.get("level_rewards")
         
 
 class LevelRewards():
@@ -24,21 +28,20 @@ class LevelRewards():
         self.server = server
     
     def get_closest_reward(self, level) -> Reward:
-        current_key = None
         keys = [int(k) for k in self.data.keys()]
         remove_roles = []
+        reward_data = {}
         for key in keys:
-            if level > int(key):
-                current_key = key
+            if level >= int(key):
                 reward_data:dict = self.data.get(str(key), {})
                 remove_roles += reward_data.get('remove', [])
 
 
-        
-        
         data = {
             "add": reward_data.get('add', []),
-            "remove": reward_data.get('remove', []) + remove_roles
+            "remove": reward_data.get('remove', []) + remove_roles,
+            "base_data": reward_data,
+            "level_rewards":self
         }
 
         return Reward(data, self.server)

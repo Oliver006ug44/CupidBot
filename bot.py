@@ -41,7 +41,7 @@ tree = bot.tree
 async def test(ctx:Context):
     level = get_level(bot, ctx.author)
     rewards = get_config(bot, ctx.guild.id).rewards.get_closest_reward(level.level)
-    embed = Embed(description=", ".join(r.mention for r in rewards.add))
+    embed = Embed(description=", ".join(r.mention for r in rewards.add ))
     await ctx.send(embed=embed)
     
 

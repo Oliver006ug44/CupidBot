@@ -89,5 +89,5 @@ def create_level(bot:Bot, user:User) -> Level:
         "xp":0
     }
     level = Level(bot, data)
-    level.edit(data, upsert=True)
+    level.edit({"$set":data}, upsert=True)
     return level

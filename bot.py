@@ -13,8 +13,8 @@ from cogs.welcome import Welcome
 from cogs.ui.submissionui import SubmissionView
 
 from database.matchingdb import MATCHING, Profile
-from database.configdb import get_config, create_config
-from database.levelesdb import get_level
+
+
 
 class Bot(Bot):
     def __init__(self):
@@ -35,18 +35,6 @@ class Bot(Bot):
 bot = Bot()
 tree = bot.tree
 
-
-@bot.command()
-@is_owner()
-async def test(ctx:Context):
-    level = get_level(bot, ctx.author)
-    rewards = get_config(bot, ctx.guild.id).rewards.get_closest_reward(level.level)
-    embed = Embed(description=", ".join(r.mention for r in rewards.add ))
-    await ctx.send(embed=embed)
-    
-
-        
-        
 
 
 @bot.command()

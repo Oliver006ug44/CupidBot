@@ -1,11 +1,9 @@
 # Level Features for the bot
 from discord import Embed, Member, Message, Interaction, File
-from discord.app_commands import command, Group
+from discord.app_commands import command, Group, describe
 from discord.ext.commands import Cog, is_owner, Bot
-from database.levelesdb import Level, get_level, create_level, LevelNotFoundException, LEVELS
+from database.levelsdb import Level, get_level, create_level, LevelNotFoundException, LEVELS
 from database.configdb import get_config
-
-from imagegen import generate_level, int_to_ordinal
 
 import random
 
@@ -51,20 +49,28 @@ class Levels(Cog):
 
     @command(description="A command to view all the top ranking members in a server")
     async def leaderboard(self, interaction:Interaction):
-        users:list[Level] = []
-        for base_data in LEVELS.find():
-            user_id = base_data.get("user_id", None)
-            if not user_id: continue
-            try: users.append(get_level(self.bot, self.bot.get_user(int(user_id))))
-            except: continue
-            
-        order = sorted(users, key=lambda x:x.level, reverse=True)
+        all_users = [u for u in LEVELS.find()]
+        parsed_levels:list[Level] = [get_level(self.bot, self.bot.get_user(u.get('user_id'))) for u in all_users if self.bot.get_user(u.get('user_id'))]
+        sorted_levels = sorted(parsed_levels, key=lambda rank:rank.level, reverse=True)
 
-        description = "\n".join(f"{i+1} | Level `{level.level}` | Xp `{level.xp}` |  {level.user.mention}" for i, level in enumerate(order[0:10]))
+        description = "\n".join(f"{i+1} | Level `{level.level}` | Xp `{level.xp}` |  {level.user.mention}" for i, level in enumerate(sorted_levels[0:10]))
         leaderboard_embed = Embed(title="Leaderboard", description=description, color=0xffa1dc)
 
         await interaction.response.send_message(embed=leaderboard_embed)
 
+    
+    @command(name="rank", description="a command to see the rank of yourself or another member")
+    @describe(member="The member of the rank you want to see")
+    async def rank(self, interaction:Interaction, member:Member=None):
+        await interaction.response.defer()
+        member = member if member else interaction.user
+        level = get_level(self.bot, member)
+        level.generate_rank_card()
+
+        with open("images/output.png", "rb") as f:
+            file = File(f, filename="output.png")
+            await interaction.followup.send(file=file)
+        
 
 
     levels = Group(name="level", description="A group of level based commands", default_permissions=None)

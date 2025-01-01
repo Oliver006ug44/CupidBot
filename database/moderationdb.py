@@ -9,7 +9,6 @@ class NoDataException(BaseException):
         super().__init__("No data was provided! Data object was empty")
 
 
-
 class Case():
     def __init__(self, bot:Bot, data:dict, resp_id:str=None):
         self.id = data.get("id")
@@ -32,9 +31,6 @@ class Case():
         embed.add_field(name="Reason:",value=f"`{self.reason}`", inline=False)
         embed.set_footer(text=f"Case ID: {self._id}")
         return embed
-
-
-        
 
 
 

@@ -24,22 +24,20 @@ class Levels(Cog):
 
         server_config = get_config(self.bot, message.guild.id)
         levels_chan = server_config.level_up_channel
+
         state, msg = level.inc_xp(multiplier)
         rewards = server_config.rewards.get_closest_reward(level.level) # get the closest reward
 
-        
         user_roles = set(user.roles)
         new_roles = user_roles.difference(rewards.remove) | set(rewards.add) # the roles the user SHOULD have
+
         if user_roles != new_roles: await user.edit(roles=new_roles)
 
         if not state: return
         description = f"Congrats {user.mention}! you leveled up to `{level.level}`!"
+
         if rewards.level_rewards.data.get(str(level.level), None):
-            description += f"""
-            
-            Roles Added: {", ".join(r.mention for r in rewards.add)}
-            Roles Removed: {", ".join(r.mention for r in rewards.base_remove)}
-            """
+            description += f"""\n\nRoles Added: {", ".join(r.mention for r in rewards.add)}\nRoles Removed: {", ".join(r.mention for r in rewards.base_remove)}"""
 
         level_up_embed = Embed(title="Level Up!", description=description)
         await levels_chan.send(embed=level_up_embed, content=f"{user.mention}")
@@ -64,8 +62,11 @@ class Levels(Cog):
     async def rank(self, interaction:Interaction, member:Member=None):
         await interaction.response.defer()
         member = member if member else interaction.user
-        level = get_level(self.bot, member)
-        level.generate_rank_card()
+        try:
+            level = get_level(self.bot, member)
+            level.generate_rank_card()
+        except LevelNotFoundException:
+             return await interaction.followup.send("The users level does NOT exists")
 
         with open("images/output.png", "rb") as f:
             file = File(f, filename="output.png")

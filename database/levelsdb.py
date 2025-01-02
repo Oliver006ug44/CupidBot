@@ -108,11 +108,16 @@ class Level():
 
         width, heigth = 460, 24
         rect_x, rect_y = 10, 236
-        percentage = xp/(level*100)
+        if level == 0:
+            percentage = xp/50
+            level_text = "50"
+        else:
+            percentage = xp/(level*100)
+            level_text = str(level*100)
 
         draw.rounded_rectangle((rect_x, rect_y,rect_x+width, rect_y+heigth),3,0xffffffff, outline=0xffffffff, width=3) # bg rect
         draw.rounded_rectangle((rect_x, rect_y,rect_x+width*percentage, rect_y+heigth-1),3,0xffffa1dc)
-        xp_text = f"{xp}/{level*100}"
+        xp_text = f"{xp}/{level_text}"
         text_bbox  = draw.textbbox((0,0), xp_text, font=xp_font)
         text_width = text_bbox[2] - text_bbox[0]
         image_width = background.width
@@ -154,8 +159,9 @@ def create_level(bot:Bot, user:User) -> Level:
     data = {
         "user_id":user.id,
         "level":0,
-        "xp":0
+        "xp":0,
+        "date":int(time.time())
     }
     level = Level(bot, data)
-    level.edit({"$set":data}, upsert=True)
+    LEVELS.insert_one(data)
     return level

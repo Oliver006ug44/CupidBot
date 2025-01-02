@@ -109,9 +109,9 @@ class Matching(Cog):
 
 
 
-    @profile.command(name="delete")
+    @profile.command(name="delete", description="Deletes your profile")
     async def profile_delete(self, interaction:Interaction):
-        if interaction.user.id != 1267552151454875751: return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
+        return await interaction.response.send_message('command still under construction! check back later', ephemeral=True)
     
 
 

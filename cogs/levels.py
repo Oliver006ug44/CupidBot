@@ -19,7 +19,7 @@ class Levels(Cog):
             return
         try:
             # Retrieve level data specific to the server
-            level = get_level(self.bot, self.bot.get_user(user.id), server_id=message.guild.id)
+            level = get_level(self.bot, self.bot.get_user(user.id), guild=message.guild)
         except LevelNotFoundException:
             level = create_level(self.bot, user, message.guild)  # Create server-specific level if not found
         if not level:
@@ -55,13 +55,12 @@ class Levels(Cog):
         level_up_embed = Embed(title="Level Up!", description=description)
         await levels_chan.send(embed=level_up_embed, content=f"{user.mention}")
 
-    @command(description="A command to view all the top ranking members in a server")
-    @describe(member="displays the server's Leaderboard")
+    @command(name="leaderboard", description="A command to view all the top ranking members in a server")
     async def leaderboard(self, interaction: Interaction):
         all_users = [u for u in LEVELS.find()]
 
         parsed_levels: list[Level] = [
-            get_level(self.bot, self.bot.get_user(u.get('user_id')), server_id=interaction.guild.id)
+            get_level(self.bot, self.bot.get_user(u.get('user_id')), guild=interaction.guild)
             for u in all_users if self.bot.get_user(u.get('user_id'))
         ]
 
@@ -79,7 +78,7 @@ class Levels(Cog):
         await interaction.response.defer()
         member = member if member else interaction.user
         try:
-            level = get_level(self.bot, member, interaction.guild.id)
+            level = get_level(self.bot, member, interaction.guild)
             level.generate_rank_card()
         except LevelNotFoundException:
             return await interaction.followup.send("The user's level does NOT exist")
@@ -94,7 +93,7 @@ class Levels(Cog):
     async def level_set_xp(self, interaction: Interaction, member: Member, level: int = None, xp: int = None):
         if interaction.user.id != 954513064571584554:
             return await interaction.response.send_message("Command is currently locked!")
-        user_level = get_level(self.bot, member, interaction.guild.id)
+        user_level = get_level(self.bot, member, interaction.guild)
         old_level = user_level.level
         old_xp = user_level.xp
 

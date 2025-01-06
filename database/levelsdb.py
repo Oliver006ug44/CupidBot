@@ -1,5 +1,5 @@
 from discord.ext.commands import Bot
-from discord import User, guild
+from discord import User, Guild
 from database.databasev2 import LEVELS, UserNotFoundException
 
 import random
@@ -16,13 +16,15 @@ class LevelNotFoundException(BaseException):
 
 
 class Level():
-    def __init__(self, bot:Bot, data:dict=None):
+    def __init__(self, bot: Bot, data: dict = None):
         self.bot = bot
         if not data: raise LevelNotFoundException()
         
         self.user_id = data.get('user_id')
         self.user = bot.get_user(data.get('user_id'))
         self.server_id = data.get('server_id')
+        self.guild = data.get('guild')
+        self.guild_id = data.get('guild_id')
         if not self.user: raise UserNotFoundException()
         
         self.level = data.get('level', 0)
@@ -36,7 +38,7 @@ class Level():
         data = LEVELS.find_one(self.doc)
         self.__init__(self.bot, data)
 
-    def inc_xp(self, mul:int=1) -> tuple[bool, str]:
+    def inc_xp(self, mul: int = 1) -> tuple[bool, str]:
         """Randomly increases the user's XP between 1-45
 
         Args:
@@ -55,7 +57,7 @@ class Level():
             self.xp = new_xp % xp_required
             self.level += 1
             state = True
-            message = f"Congrats {self.user.mention}! You have leveled up to `{self.level}`"
+            message = f"Congrats {self.user.mention}! You have leveled up to {self.level}"
         else:
             self.xp = new_xp
 
@@ -66,7 +68,7 @@ class Level():
     def get_rank(self):
         all_users = [u for u in LEVELS.find({"server_id": self.server_id})]
         parsed_levels: list[Level] = [
-            get_level(self.bot, self.bot.get_user(u.get('user_id')), server_id=u.get('server_id'))
+            get_level(self.bot, self.bot.get_user(u.get('user_id')), u.get('server_id'))
             for u in all_users if self.bot.get_user(u.get('user_id'))
         ]
         sorted_levels = sorted(parsed_levels, key=lambda rank: rank.level, reverse=True)
@@ -147,27 +149,30 @@ class Level():
         background.save("images/output.png")
 
 
-def get_level(bot: Bot, user: User, server_id) -> Level:
-    """Gets the level of a user based on server_id
+def get_level(bot: Bot, user: User, guild: Guild) -> Level:
+    """Gets the level of a user based on the guild (server) ID.
 
     Args:
-        bot (Bot): the bot to be able to do the .get_user() call
-        user (User): user to get the level of
-        server_id: the server where the level is tracked
+        bot (Bot): The bot instance to be able to do the .get_user() call.
+        user (User): The user whose level is to be retrieved.
+        guild (Guild): The guild (server) where the level is tracked.
 
     Returns:
-        Level: the level object of the user
+        Level: The Level object containing the user's level data.
     """
-    return Level(bot, LEVELS.find_one({"user_id": user.id, "server_id": server_id}))
+    data = LEVELS.find_one({"user_id": user.id, "server_id": guild.id})
+    if not data:
+        raise LevelNotFoundException()
+    return Level(bot, data)
 
 
-def create_level(bot: Bot, user: User, guild: guild) -> Level:
+def create_level(bot: Bot, user: User, guild: Guild) -> Level:
     """Creates a level for a user
 
     Args:
         bot (Bot): the bot to be able to do the .get_user() call
         user (User): the user for the level to be created from
-        server_id: the server where the level is to be tracked
+        guild (Guild): the server where the level is to be tracked
 
     Returns:
         Level: the level object of the user
